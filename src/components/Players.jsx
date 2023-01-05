@@ -1,11 +1,33 @@
-import React from "react";
-import { useLocation, useSearchParams } from "react-router-dom";
+import React, { useState, useEffect } from "react";
+import { Outlet, useLocation, useSearchParams } from "react-router-dom";
+import usePlayerNames from "../hooks/usePlayerNames";
+import Sidebar from "./Sidebar";
 
 export default function Players() {
   const location = useLocation();
   const [searchParams] = useSearchParams(location.search);
+  const [team, setTeam] = useState(searchParams.get("teamId"));
 
-  const team = searchParams.get("teamId");
+  useEffect(() => {
+    if (location.search === "") {
+      searchParams.delete("teamId");
+      setTeam(null);
+    } else {
+      setTeam(searchParams.get("teamId"));
+    }
+  }, [location.search, searchParams]);
 
-  return <div className="container">Players for {team}</div>;
+  const { response: names, loading } = usePlayerNames(team);
+
+  if (loading === true) {
+    return null;
+  }
+
+  return (
+    <div className="container two-column">
+      <Sidebar title="Players" list={names} />
+
+      <Outlet />
+    </div>
+  );
 }
